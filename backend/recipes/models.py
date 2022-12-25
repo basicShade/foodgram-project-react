@@ -33,7 +33,8 @@ class Recipe(models.Model):
 
     image = models.ImageField(
         upload_to='recipes/',
-        blank=True,
+        null=True,
+        default=None
         )
 
     description = models.TextField()
