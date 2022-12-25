@@ -27,7 +27,7 @@ class Recipe(models.Model):
     )
     name = models.CharField(
         verbose_name='recipe title',
-        mex_length=200,
+        max_length=200,
         unique=True
     )
 
@@ -49,7 +49,9 @@ class Recipe(models.Model):
     )
 
     cooking_time = models.PositiveSmallIntegerField(
-        validators=(MinValueValidator(1))
+        validators=[
+            MinValueValidator(1),
+        ]
     )
 
     is_favorited = models.BooleanField(default=False)
@@ -69,7 +71,9 @@ class RecipeIngredient(models.Model):
     )
 
     amount = models.PositiveSmallIntegerField(
-        validators=(MinValueValidator(1))
+        validators=[
+            MinValueValidator(1),
+        ]
     )
 
 
