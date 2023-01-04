@@ -28,7 +28,6 @@ class Recipe(models.Model):
     name = models.CharField(
         verbose_name='recipe title',
         max_length=200,
-        unique=True
     )
 
     image = models.ImageField(
@@ -42,11 +41,13 @@ class Recipe(models.Model):
     ingredients = models.ManyToManyField(
         Ingredient,
         through='RecipeIngredient',
+        related_name='recipes'
     )
 
-    tag = models.ManyToManyField(
+    tags = models.ManyToManyField(
         Tag,
-        through='RecipeTag'
+        through='RecipeTag',
+        related_name='recipes'
     )
 
     cooking_time = models.PositiveSmallIntegerField(
@@ -64,11 +65,13 @@ class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
+        related_name='amounts'
     )
 
     ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
+        related_name='amounts'
     )
 
     amount = models.PositiveSmallIntegerField(

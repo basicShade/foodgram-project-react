@@ -1,11 +1,18 @@
 from django.contrib import admin
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Group, User
 
 from .models import Recipe, Ingredient, Tag
 
-admin.site.unregister(Group)
-admin.site.unregister(User)
+
+class RecipeIngredientAdmin(admin.TabularInline):
+    model = Recipe.ingredients.through
+    extra = 0
+
+
+class RecipeTagAdmin(admin.TabularInline):
+    model = Recipe.tags.through
+    extra = 0
+
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
@@ -18,6 +25,7 @@ class RecipeAdmin(admin.ModelAdmin):
     search_fields = ('name',)
     list_filter = ('author',)
     empty_value_display = '-пусто-'
+    inlines = [RecipeIngredientAdmin, RecipeTagAdmin]
 
 
 @admin.register(Ingredient)
