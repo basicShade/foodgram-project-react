@@ -79,6 +79,13 @@ class Recipe(models.Model):
     is_favorited = models.BooleanField(default=False)
     is_in_shopping_cart = models.BooleanField(default=False)
 
+    pub_date = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-pub_date']
+
+    def __str__(self):
+        return self.name
 
 class RecipeIngredient(models.Model):
     """Модель-связка рецептов с ингредиентами"""

@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import check_password, make_password
 from rest_framework import serializers
 
+from recipes.models import Recipe
 from .models import Follow
 
 User = get_user_model()
@@ -20,7 +21,7 @@ class UserSerializer(serializers.ModelSerializer):
             'username',
             'first_name',
             'last_name',
-            'is_subscribed'
+            'is_subscribed',
         )
 
     def get_is_subscribed(self, obj):
@@ -29,7 +30,7 @@ class UserSerializer(serializers.ModelSerializer):
         else:
             user = self.context.get('request').user
             if user.is_anonymous:
-                return False            
+                return False
 
         return Follow.objects.filter(user=user, author=obj.id).exists()
 
@@ -69,4 +70,35 @@ class PasswordChangeSerializer(serializers.Serializer):
         instance.password = validated_data['new_password']
         instance.save()
         return instance
+
+
+class RecipeShortListSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name', 'image', 'cooking_time')
+
+
+
+class FollowSerializer(UserSerializer):
+    recipes = serializers.SerializerMethodField(read_only=True)
+
+    class Meta(UserSerializer.Meta):
+        model = User
+        fields = (
+            'id',
+            'email',
+            'username',
+            'first_name',
+            'last_name',
+            'is_subscribed',
+            'recipes'
+        )
+
+    def get_recipes(self, obj):
+        qset = Recipe.objects.filter(author=obj)
+        limiter = self.context.get('recipes_limit')
+        qset = qset[:int(limiter)] if limiter else qset
+
+        return RecipeShortListSerializer(qset, many=True).data
 

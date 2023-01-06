@@ -21,6 +21,7 @@ class RecipeAdmin(admin.ModelAdmin):
         'cooking_time',
         'author',
     )
+    readonly_fields = ('pub_date',)
     list_editable = ()
     search_fields = ('name',)
     list_filter = ('author',)

@@ -1,12 +1,16 @@
-import pprint
+import io
 
+from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from django.db.models import Sum
-
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+
+from reportlab.pdfgen import canvas
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase import ttfonts
 
 from recipes.models import Recipe, Ingredient, Tag, RecipeIngredient
 
@@ -17,13 +21,6 @@ from .serializers import ShoppingListSerializer, RecipeSerializer
 from .permissions import IsAuthenticatedAuthor
 
 app_name = 'api'
-
-
-
-# class ShoppingListViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
-#     queryset = Ingredient.objects.filter(recipes__is_in_shopping_cart=True)
-#     serializer_class = ShoppingListSerializer
-
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -89,6 +86,35 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 field='is_favorited'
             )
         )
+
+    @action(detail=False, methods=['get'], url_path='download_shopping_cart')
+    def download_shopping_cart(self, request):
+
+        ingredients = Ingredient.objects.filter(recipes__is_in_shopping_cart=True)
+        ingredients = ingredients.annotate(Sum('amounts__amount'))
+        for i in ingredients:
+            print()
+            print(i.__dict__)
+
+        buffer = io.BytesIO()
+
+        p = canvas.Canvas(buffer)
+        pdfmetrics.registerFont(
+            ttfonts.TTFont(
+                'TNR', 'times.ttf', 'UTF-8'
+            )
+        )
+        p.setFont('TNR', size=24)
+        p.drawString(100, 750, "Список покупок")
+        p.setFont('TNR', size=18)
+        for i, item in enumerate(ingredients):
+            line = f'\u2022 {item.name}, {item.measurement_unit}: {item.amounts__amount__sum}'
+            p.drawString(100, 700-i*20, line)
+        p.showPage()
+        p.save()
+
+        buffer.seek(0)
+        return FileResponse(buffer, as_attachment=True, filename='hello.pdf')
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):

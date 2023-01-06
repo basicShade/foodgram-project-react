@@ -48,7 +48,7 @@ class UsersEndpointsTest(APITestCase):
         response = self.client.get('/api/users/', {'limit': 2, 'offset': 2})
         user = response.data['results'][0]
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(user['username'], 'user3')
+        self.assertEqual(user['username'], 'liza')
         self.assertFields(
             response.data['results'][0],
             self.flds,

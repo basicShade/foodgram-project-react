@@ -38,7 +38,6 @@ class ShowIngredientSerializer(serializers.ModelSerializer):
 class AddIngredientSerializer(serializers.ModelSerializer):
     """Сериализатор для добавления ингредиентов"""
     id = serializers.PrimaryKeyRelatedField(queryset=Ingredient.objects.all())
-    # amount = serializers.IntegerField()
 
     class Meta:
         model = RecipeIngredient
@@ -59,9 +58,29 @@ class TagSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class RecipeListSerializer(serializers.ModelSerializer):
+    """Сериализатор списка рецептов (list)"""
+    author = UserSerializer(read_only=True) 
+    tags = SlugRelatedField(
+        many=True,
+        required=False,
+        slug_field='slug',
+        queryset=Tag.objects.all()
+    )
+
+    class Meta:
+        model = Recipe
+        fields = ('is_favorited', 'is_in_shopping_cart', 'author', 'tags')
+
+
+class BoolFieldUpdateSerializer(RecipeListSerializer):
+    """Инфо после добавления/удаления из корзины/favorites"""
+    class Meta(RecipeListSerializer.Meta):
+        fields = ('id', 'name', 'image', 'cooking_time')
+
+
 class RecipeSerializer(serializers.ModelSerializer):
     """Сериализатор рецептов (retrieve/delete)"""
-    image = Base64ImageField(required=False, allow_null=True)
     author = UserSerializer(read_only=True)    
     tags = TagSerializer(many=True, read_only=True)
     ingredients = serializers.SerializerMethodField(read_only=True)
@@ -73,24 +92,13 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
-        fields = '__all__'
+        exclude = ('pub_date',)
 
 
-class RecipeListSerializer(RecipeSerializer):
-    """Сериализатор списка рецептов (list)"""
-    tags = SlugRelatedField(
-        many=True,
-        required=False,
-        slug_field='slug',
-        queryset=Tag.objects.all()
-    )
-
-    class Meta(RecipeSerializer.Meta):
-        fields = ('is_favorited', 'is_in_shopping_cart', 'author', 'tags')
-
-
-class RecipeWriteSerializer(RecipeSerializer):
+class RecipeWriteSerializer(serializers.ModelSerializer):
     """Сериализатор добаления рецептов (create, update)"""
+    author = UserSerializer(read_only=True)
+    image = Base64ImageField(required=False, allow_null=True)
     tags = PrimaryKeyRelatedField(
         many=True,
         required=False,
@@ -98,8 +106,9 @@ class RecipeWriteSerializer(RecipeSerializer):
     )
     ingredients = AddIngredientSerializer(many=True)
 
-    class Meta(RecipeSerializer.Meta):
-        fields = '__all__'
+    class Meta:
+        model = Recipe
+        exclude = ('pub_date',)
 
     # def validate_ingredients(self, value):
     #     for item in value:
@@ -142,12 +151,6 @@ class RecipeWriteSerializer(RecipeSerializer):
         self.create_ingredients(validated_data.pop('ingredients'), recipe)
         self.create_tags(validated_data.pop('tags'), recipe)
         return super().update(recipe, validated_data)
-
-
-class BoolFieldUpdateSerializer(RecipeListSerializer):
-    """Инфо после добавления/удаления из корзины/favorites"""
-    class Meta(RecipeListSerializer.Meta):
-        fields = ('id', 'name', 'image', 'cooking_time')
 
 
 class ShoppingListSerializer(serializers.ModelSerializer):
