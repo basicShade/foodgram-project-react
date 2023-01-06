@@ -7,8 +7,22 @@ User = get_user_model()
 
 class Ingredient(models.Model):
     """Модель ингредиентов"""
-    name = models.CharField(max_length=200, unique=True)
+    name = models.CharField(max_length=200)
     measurement_unit = models.CharField(max_length=200)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['name', 'measurement_unit'],
+                name='unique_ingredient',
+            )
+        ]
+    
+    class Meta:
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name + ', ' + self.measurement_unit
 
 
 class Tag(models.Model):
@@ -17,6 +31,11 @@ class Tag(models.Model):
     color = models.CharField(max_length=7, unique=True)
     slug = models.SlugField(max_length=200, unique=True)
 
+    class Meta:
+        ordering = ['slug']
+
+    def __str__(self):
+        return self.name
 
 class Recipe(models.Model):
     """Модель рецептов"""
@@ -33,10 +52,11 @@ class Recipe(models.Model):
     image = models.ImageField(
         upload_to='recipes/',
         null=True,
+        blank=True,
         default=None
         )
 
-    description = models.TextField()
+    text = models.TextField()
 
     ingredients = models.ManyToManyField(
         Ingredient,

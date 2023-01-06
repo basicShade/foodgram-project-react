@@ -17,8 +17,8 @@ class RecipeTagAdmin(admin.TabularInline):
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
     list_display = (
-        'pk',
         'name',
+        'cooking_time',
         'author',
     )
     list_editable = ()
@@ -31,7 +31,6 @@ class RecipeAdmin(admin.ModelAdmin):
 @admin.register(Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
     list_display = (
-        'pk',
         'name',
         'measurement_unit',
     )
@@ -44,7 +43,6 @@ class IngredientAdmin(admin.ModelAdmin):
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
     list_display = (
-        'pk',
         'name',
         'color',
         'slug',
@@ -52,3 +50,4 @@ class TagAdmin(admin.ModelAdmin):
     list_editable = ()
     search_fields = ('name', 'slug')
     empty_value_display = '-пусто-'
+    prepopulated_fields = {'slug': ('name',)}

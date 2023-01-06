@@ -14,6 +14,7 @@ from .serializers import IngredientSerializer, RecipeListSerializer
 from .serializers import TagSerializer, RecipeWriteSerializer
 from .serializers import BoolFieldUpdateSerializer
 from .serializers import ShoppingListSerializer, RecipeSerializer
+from .permissions import IsAuthenticatedAuthor
 
 app_name = 'api'
 
@@ -31,13 +32,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filterset_fields = (
         'author',
         'is_favorited',
-        'is_in_shopping_cart',
+        'is_in_shopping_cart'
     )
     lookup_field = 'pk'
+    permission_classes = [IsAuthenticatedAuthor,]
 
     def get_queryset(self):
         qset = Recipe.objects.prefetch_related('tags', 'ingredients')
-        tag = self.request.query_params.get('tag')
+        tag = self.request.query_params.get('tags')
 
         if tag is not None:
             qset = qset.filter(tags__slug__icontains=tag)

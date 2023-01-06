@@ -1,4 +1,3 @@
-from pprint import pprint
 from django.contrib.auth import get_user_model
 
 from rest_framework.test import APIClient, APITestCase
@@ -45,6 +44,7 @@ class UsersEndpointsTest(APITestCase):
                 self.assertNotIn('password', response_fields.keys())
 
     def test_user_list_200_pagination_fields(self):
+        """Проверка списка польз.: статус, пагинация, поля и отсутствия пароля."""
         response = self.client.get('/api/users/', {'limit': 2, 'offset': 2})
         user = response.data['results'][0]
         self.assertEqual(response.status_code, 200)
@@ -56,6 +56,7 @@ class UsersEndpointsTest(APITestCase):
         )
 
     def test_user_signup(self):
+        """Проверка добавл. польз.: статус, поля и отсутствия пароля."""
         initial_data = {
             'first_name': 'first',
             'last_name': 'last',
@@ -77,7 +78,7 @@ class UsersEndpointsTest(APITestCase):
         self.assertFields(response.data, self.flds, ['password', 'is_subscribed'])
 
     def test_user_profile(self):
-
+        """Проверка get польз.: статус, авториз., поля и отсутствия пароля."""
         response = self.client.get('/api/users/1/')
         self.assertEqual(response.status_code, 401)
 
@@ -86,6 +87,7 @@ class UsersEndpointsTest(APITestCase):
         self.assertFields(response.data, self.flds, ['password'])
 
     def test_user_profile_me(self):
+        """Проверка get польз.: статус, авториз., поля и отсутствия пароля."""
         response = self.client.get('/api/users/me/')
         self.assertEqual(response.status_code, 401)
 
@@ -94,6 +96,7 @@ class UsersEndpointsTest(APITestCase):
         self.assertFields(response.data, self.flds, ['password'])
 
     def test_change_password(self):
+        """Проверка смены пароля.: статус, авториз., поля."""
         response = self.client.post('/api/users/set_password/')
         self.assertEqual(response.status_code, 401)
 
@@ -102,6 +105,7 @@ class UsersEndpointsTest(APITestCase):
         self.assertFields(response.data, ['new_password', 'current_password'])
 
     def test_create_token(self):
+        """Проверка получ. токена: статус, поля."""
         data = {
             'first_name': 'first',
             'last_name': 'last',
@@ -110,7 +114,6 @@ class UsersEndpointsTest(APITestCase):
             'password': 'serdit',
         }
         response = self.client.post('/api/users/', data=data)
-
         response = self.client.post('/api/auth/token/login/')
         self.assertEqual(response.status_code, 400)
 
@@ -120,6 +123,7 @@ class UsersEndpointsTest(APITestCase):
 
 
     def test_delete_token(self):
+        """Проверка удал. токена: статус, поля."""
         response = self.auth_client.post('/api/auth/token/logout/')
         self.assertEqual(response.status_code, 204)
         response = self.client.post('/api/auth/token/logout/')

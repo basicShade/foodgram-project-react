@@ -38,7 +38,7 @@ class ShowIngredientSerializer(serializers.ModelSerializer):
 class AddIngredientSerializer(serializers.ModelSerializer):
     """Сериализатор для добавления ингредиентов"""
     id = serializers.PrimaryKeyRelatedField(queryset=Ingredient.objects.all())
-    amount = serializers.IntegerField()
+    # amount = serializers.IntegerField()
 
     class Meta:
         model = RecipeIngredient
@@ -100,6 +100,15 @@ class RecipeWriteSerializer(RecipeSerializer):
 
     class Meta(RecipeSerializer.Meta):
         fields = '__all__'
+
+    # def validate_ingredients(self, value):
+    #     for item in value:
+    #         amount = item['amount']
+    #         if amount < 1 or not isinstance(amount, int):
+    #             raise serializers.ValidationError(
+    #                 (f'Проверьте, что количество в {item["id"]}'
+    #                  ' целое и не меньше 1')
+    #                  )
 
     def create_ingredients(self, ingredients, recipe):
         for ingredient in ingredients:
