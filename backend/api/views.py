@@ -92,9 +92,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         ingredients = Ingredient.objects.filter(recipes__is_in_shopping_cart=True)
         ingredients = ingredients.annotate(Sum('amounts__amount'))
-        for i in ingredients:
-            print()
-            print(i.__dict__)
 
         buffer = io.BytesIO()
 
@@ -107,14 +104,23 @@ class RecipeViewSet(viewsets.ModelViewSet):
         p.setFont('TNR', size=24)
         p.drawString(100, 750, "Список покупок")
         p.setFont('TNR', size=18)
+        b = 20 # number of bullet on page
         for i, item in enumerate(ingredients):
+            print(item)
             line = f'\u2022 {item.name}, {item.measurement_unit}: {item.amounts__amount__sum}'
-            p.drawString(100, 700-i*20, line)
+            pos = 720-(i%b)*20
+            p.drawString(100, pos, line)
+            if i%b == b-1:
+                p.showPage()
+                p.setFont('TNR', size=24)
+                p.drawString(100, 750, "Список покупок (продолжение)")
+                p.setFont('TNR', size=18)
+
         p.showPage()
         p.save()
 
         buffer.seek(0)
-        return FileResponse(buffer, as_attachment=True, filename='hello.pdf')
+        return FileResponse(buffer, as_attachment=True, filename='shopping_cart.pdf')
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
