@@ -12,79 +12,104 @@ from reportlab.pdfgen import canvas
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase import ttfonts
 
-from recipes.models import Recipe, Ingredient, Tag, RecipeIngredient
+from recipes.models import Recipe, Ingredient, Tag
+from recipes.models import ShoppingCart, Favorite
+from users.serializers import RecipeShortListSerializer
+from users.pagination import CustomPageNumberPagination
 
-from .serializers import IngredientSerializer, RecipeListSerializer
-from .serializers import TagSerializer, RecipeWriteSerializer
-from .serializers import BoolFieldUpdateSerializer
-from .serializers import ShoppingListSerializer, RecipeSerializer
+from .serializers import IngredientSerializer, TagSerializer
+from .serializers import RecipeSerializer, RecipeWriteSerializer
 from .permissions import IsAuthenticatedAuthor
+
 
 app_name = 'api'
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
     """View рецептов"""
+    QUERY_PARAMS_FAVORITE_TRUE = '1'
+    QUERY_PARAMS_FAVORITE_FALSE = '0'
+
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = (
         'author',
-        'is_favorited',
-        'is_in_shopping_cart'
     )
     lookup_field = 'pk'
     permission_classes = [IsAuthenticatedAuthor,]
+    pagination_class = CustomPageNumberPagination
 
     def get_queryset(self):
         qset = Recipe.objects.prefetch_related('tags', 'ingredients')
         tag = self.request.query_params.get('tags')
+        is_favorited = self.request.query_params.get('is_favorited')
+        is_in_shopping_cart = self.request.query_params.get(
+                'is_in_shopping_cart'
+        )
+        user = self.request.user
 
-        if tag is not None:
+        if tag:
             qset = qset.filter(tags__slug__icontains=tag)
+
+        if user.is_anonymous:
+            return qset
+            
+        if is_favorited == self.QUERY_PARAMS_FAVORITE_TRUE:
+            qset = qset.filter(is_favorited__user=user)
+        elif is_favorited == self.QUERY_PARAMS_FAVORITE_FALSE:
+            qset = qset.exclude(is_favorited__user=user)
+
+        if is_in_shopping_cart == self.QUERY_PARAMS_FAVORITE_TRUE:
+            qset = qset.filter(is_in_shopping_cart__user=user)
+        elif is_in_shopping_cart == self.QUERY_PARAMS_FAVORITE_FALSE:
+            qset = qset.exclude(is_in_shopping_cart__user=user)
 
         return qset
     
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
             return RecipeWriteSerializer
-        elif self.action == 'list':
-            return RecipeListSerializer
-        elif self.action == 'retrieve':
+        elif self.action in ['list', 'retrieve']:
             return RecipeSerializer
 
-    def update_bool_field(self, request, pk, field):
-        """Меняет значение булевого поля на противоположное"""
-        recipe = get_object_or_404(Recipe.objects.filter(pk=pk))
-        box_state = getattr(recipe, field)
+    def update_bool_field(self, request, pk, klass, field):
+        """
+        Добавляет/удаляет рецепт из списков is_in_shopping_cart, is_favorite.
+        """
+        recipe = get_object_or_404(Recipe, pk=pk)
+        obj = klass.objects.filter(
+            recipe=recipe,
+            user=request.user
+        )
         is_post = (request.method == 'POST')
-        if box_state == is_post:
-            error = {'errors': f'{field} is already {is_post}'}
-            return error, status.HTTP_400_BAD_REQUEST
-        setattr(recipe, field, not box_state)
-        recipe.save()
+        if is_post == obj.exists():
+            error = {
+                'errors': (
+                    f'{recipe} {field} is already {is_post}'
+                )
+            }
+            return Response(error, status.HTTP_400_BAD_REQUEST)
 
         if not is_post:
-            return None, status.HTTP_204_NO_CONTENT
+            obj.delete()
+            return Response(None, status.HTTP_204_NO_CONTENT)
         else:
-            return BoolFieldUpdateSerializer(recipe).data, status.HTTP_201_CREATED
-
-    @action(detail=True, methods=['post', 'delete'])
-    def shopping_cart(self, request, pk):
-        return Response(
-            *self.update_bool_field(
-                request,
-                pk,
-                field='is_in_shopping_cart'
+            klass.objects.create(
+                recipe=recipe,
+                user=request.user
             )
+            data = RecipeShortListSerializer(recipe).data
+            return Response(data, status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['post', 'delete'], url_path='shopping_cart')
+    def shopping_cart(self, request, pk):
+        return self.update_bool_field(
+            request, pk, ShoppingCart, 'is_in_shopping_cart'
         )
 
-    @action(detail=True, methods=['post', 'delete'])
+    @action(detail=True, methods=['post', 'delete'], url_path='favorite')
     def favorite(self, request, pk):
-        return Response(
-            *self.update_bool_field(
-                request,
-                pk,
-                field='is_favorited'
-            )
+        return self.update_bool_field(
+            request, pk, Favorite, 'is_favorited'
         )
 
     @action(detail=False, methods=['get'], url_path='download_shopping_cart')

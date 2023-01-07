@@ -76,8 +76,8 @@ class Recipe(models.Model):
         ]
     )
 
-    is_favorited = models.BooleanField(default=False)
-    is_in_shopping_cart = models.BooleanField(default=False)
+    # is_favorited = models.BooleanField(default=False)
+    # is_in_shopping_cart = models.BooleanField(default=False)
 
     pub_date = models.DateTimeField(auto_now_add=True)
 
@@ -119,3 +119,49 @@ class RecipeTag(models.Model):
         Tag,
         on_delete=models.CASCADE
     )
+
+
+class ShoppingCart(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='is_in_shopping_cart',
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='is_in_shopping_cart',
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='unique_shopping_cart',
+            )
+        ]
+    def __str__(self):
+        return f'{self.recipe} in {self.user} cart'
+
+
+class Favorite(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='is_favorited',
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='is_favorited',
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='unique_favorite',
+            )
+        ]
+    def __str__(self):
+        return f'{self.recipe} is {self.user} favorite'

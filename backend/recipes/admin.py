@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 
-from .models import Recipe, Ingredient, Tag
+from .models import Recipe, Ingredient, Tag, ShoppingCart, Favorite
 
 
 class RecipeIngredientAdmin(admin.TabularInline):
@@ -12,6 +12,38 @@ class RecipeIngredientAdmin(admin.TabularInline):
 class RecipeTagAdmin(admin.TabularInline):
     model = Recipe.tags.through
     extra = 0
+
+
+class ShoppingCartInline(admin.StackedInline):
+    model = ShoppingCart
+    fk_name='user'
+    extra = 0
+
+
+class FavoriteInline(admin.StackedInline):
+    model = Favorite
+    fk_name='user'
+    extra = 0
+
+
+@admin.register(ShoppingCart)
+class ShoppingCartAdmin(admin.ModelAdmin):
+    list_display = (
+        '__str__',
+        'user',
+        'recipe'
+    )
+    search_fields = ('user__username', 'recipe__name')
+
+
+@admin.register(Favorite)
+class FavoriteAdmin(admin.ModelAdmin):
+    list_display = (
+        '__str__',
+        'user',
+        'recipe'
+    )
+    search_fields = ('user__username', 'recipe__name')
 
 
 @admin.register(Recipe)
