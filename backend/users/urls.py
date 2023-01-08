@@ -1,8 +1,7 @@
-from django.urls import path, include
+from django.urls import include, path
 from rest_framework import routers
 
 from .views import UserViewSet
-# from .views import LoginGetTokenView, LogoutDeleteTokenView
 
 app_name = 'users'
 

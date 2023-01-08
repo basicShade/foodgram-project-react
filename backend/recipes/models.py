@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import MinValueValidator
 from django.db import models
 
 User = get_user_model()
@@ -11,15 +11,13 @@ class Ingredient(models.Model):
     measurement_unit = models.CharField(max_length=100)
 
     class Meta:
+        ordering = ['name']
         constraints = [
             models.UniqueConstraint(
                 fields=['name', 'measurement_unit'],
                 name='unique_ingredient',
             )
         ]
-    
-    class Meta:
-        ordering = ['name']
 
     def __str__(self):
         return self.name + ', ' + self.measurement_unit
@@ -36,6 +34,7 @@ class Tag(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class Recipe(models.Model):
     """Модель рецептов"""
@@ -76,9 +75,6 @@ class Recipe(models.Model):
         ]
     )
 
-    # is_favorited = models.BooleanField(default=False)
-    # is_in_shopping_cart = models.BooleanField(default=False)
-
     pub_date = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -86,6 +82,7 @@ class Recipe(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class RecipeIngredient(models.Model):
     """Модель-связка рецептов с ингредиентами"""
@@ -140,6 +137,7 @@ class ShoppingCart(models.Model):
                 name='unique_shopping_cart',
             )
         ]
+
     def __str__(self):
         return f'{self.recipe} in {self.user} cart'
 
@@ -163,5 +161,6 @@ class Favorite(models.Model):
                 name='unique_favorite',
             )
         ]
+
     def __str__(self):
         return f'{self.recipe} is {self.user} favorite'

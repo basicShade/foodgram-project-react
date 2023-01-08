@@ -1,10 +1,10 @@
 from django.contrib import admin
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.models import Group
 from django.utils.translation import gettext_lazy as _
+from recipes.admin import FavoriteInline, ShoppingCartInline
 
-from recipes.admin import ShoppingCartInline, FavoriteInline
 from .models import Follow
 
 User = get_user_model()
@@ -14,7 +14,7 @@ admin.site.unregister(Group)
 
 class FollowInline(admin.StackedInline):
     model = Follow
-    fk_name='user'
+    fk_name = 'user'
     extra = 0
 
 
@@ -36,7 +36,7 @@ class CustomUserAdmin(UserAdmin):
     list_filter = ('is_admin', 'is_superuser', 'is_active')
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
-        (_('Personal info'),{
+        (_('Personal info'), {
             'fields': ('first_name', 'last_name', 'email')
         }),
         (_('Permissions'), {
@@ -44,4 +44,4 @@ class CustomUserAdmin(UserAdmin):
         }),
         (_('Important dates'), {'fields': ('last_login', 'date_joined')}),
     )
-    inlines=[FollowInline, ShoppingCartInline, FavoriteInline]
+    inlines = [FollowInline, ShoppingCartInline, FavoriteInline]

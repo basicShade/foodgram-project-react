@@ -1,11 +1,10 @@
 import base64
-from django.contrib.auth import get_user_model
-from django.core.files.base import ContentFile
-from rest_framework import serializers
-from rest_framework.relations import SlugRelatedField, PrimaryKeyRelatedField
 
-from recipes.models import Recipe, Ingredient, Tag, RecipeIngredient
-from recipes.models import ShoppingCart, Favorite
+from django.core.files.base import ContentFile
+from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
+                            ShoppingCart, Tag)
+from rest_framework import serializers
+from rest_framework.relations import PrimaryKeyRelatedField
 from users.serializers import UserSerializer
 
 
@@ -13,7 +12,7 @@ class Base64ImageField(serializers.ImageField):
     """Сериализатор для поля с картинками"""
     def to_internal_value(self, data):
         if isinstance(data, str) and data.startswith('data:image'):
-            format, imgstr = data.split(';base64,')  
+            format, imgstr = data.split(';base64,')
             ext = format.split('/')[-1]
             data = ContentFile(
                 base64.b64decode(imgstr),
@@ -33,7 +32,7 @@ class ShowIngredientSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RecipeIngredient
-        fields = ( 'id', 'name', 'measurement_unit', 'amount')
+        fields = ('id', 'name', 'measurement_unit', 'amount')
 
 
 class AddIngredientSerializer(serializers.ModelSerializer):
@@ -68,7 +67,7 @@ class RecipeShortListSerializer(serializers.ModelSerializer):
 
 class RecipeSerializer(serializers.ModelSerializer):
     """Сериализатор рецептов (retrieve/delete)"""
-    author = UserSerializer(read_only=True)    
+    author = UserSerializer(read_only=True)
     tags = TagSerializer(many=True, read_only=True)
     ingredients = serializers.SerializerMethodField(read_only=True)
     is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)
@@ -81,7 +80,6 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
-        # fields = '__all__'
         exclude = ('pub_date',)
 
     def get_is_in_shopping_cart(self, obj):
@@ -159,7 +157,6 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
 
 class ShoppingListSerializer(serializers.ModelSerializer):
     """Сериализатор списка покупок"""
-    
     ingredients = IngredientSerializer(many=True, read_only=True)
 
     class Meta:

@@ -1,10 +1,9 @@
-from pprint import pprint
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import check_password, make_password
+from recipes.models import Recipe
 from rest_framework import serializers
 
-from recipes.models import Recipe
 from .models import Follow
 
 User = get_user_model()
@@ -47,7 +46,8 @@ class UserCreateSerializer(serializers.ModelSerializer):
         extra_kwargs = {'password': {'write_only': True}}
 
     def validate_password(self, value):
-            return make_password(value, settings.SECRET_KEY)
+        return make_password(value, settings.SECRET_KEY)
+
 
 class PasswordChangeSerializer(serializers.Serializer):
     current_password = serializers.CharField(required=True)
@@ -57,7 +57,7 @@ class PasswordChangeSerializer(serializers.Serializer):
         if not check_password(value, self.instance.password):
             raise serializers.ValidationError('Проверьте пароль')
         return value
-    
+
     def validate_new_password(self, value):
         if check_password(value, self.instance.password):
             raise serializers.ValidationError('Пароль не изменился')
@@ -74,7 +74,6 @@ class RecipeShortListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time')
-
 
 
 class FollowSerializer(UserSerializer):
@@ -98,4 +97,3 @@ class FollowSerializer(UserSerializer):
         qset = qset[:int(limiter)] if limiter else qset
 
         return RecipeShortListSerializer(qset, many=True).data
-

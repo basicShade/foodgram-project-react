@@ -2,27 +2,22 @@ import io
 import os
 
 from django.conf import settings
+from django.db.models import Sum
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
-from django.db.models import Sum
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets, mixins, status
+from recipes.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
+from reportlab.pdfbase import pdfmetrics, ttfonts
+from reportlab.pdfgen import canvas
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-
-from reportlab.pdfgen import canvas
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase import ttfonts
-
-from recipes.models import Recipe, Ingredient, Tag
-from recipes.models import ShoppingCart, Favorite
-from users.serializers import RecipeShortListSerializer
 from users.pagination import CustomPageNumberPagination
+from users.serializers import RecipeShortListSerializer
 
-from .serializers import IngredientSerializer, TagSerializer
-from .serializers import RecipeSerializer, RecipeWriteSerializer
 from .permissions import IsAuthenticatedAuthor
-
+from .serializers import (IngredientSerializer, RecipeSerializer,
+                          RecipeWriteSerializer, TagSerializer)
 
 app_name = 'api'
 
@@ -37,7 +32,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         'author',
     )
     lookup_field = 'pk'
-    permission_classes = [IsAuthenticatedAuthor,]
+    permission_classes = [IsAuthenticatedAuthor, ]
     pagination_class = CustomPageNumberPagination
 
     def get_queryset(self):
@@ -54,7 +49,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         if user.is_anonymous:
             return qset
-            
+
         if is_favorited == self.QUERY_PARAMS_FAVORITE_TRUE:
             qset = qset.filter(is_favorited__user=user)
         elif is_favorited == self.QUERY_PARAMS_FAVORITE_FALSE:
@@ -66,12 +61,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
             qset = qset.exclude(is_in_shopping_cart__user=user)
 
         return qset
-    
+
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
             return RecipeWriteSerializer
-        elif self.action in ['list', 'retrieve']:
-            return RecipeSerializer
+        return RecipeSerializer
 
     def update_bool_field(self, request, pk, klass, field):
         """
@@ -94,13 +88,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if not is_post:
             obj.delete()
             return Response(None, status.HTTP_204_NO_CONTENT)
-        else:
-            klass.objects.create(
-                recipe=recipe,
-                user=request.user
-            )
-            data = RecipeShortListSerializer(recipe).data
-            return Response(data, status.HTTP_201_CREATED)
+
+        klass.objects.create(
+            recipe=recipe,
+            user=request.user
+        )
+        data = RecipeShortListSerializer(recipe).data
+        return Response(data, status.HTTP_201_CREATED)
 
     @action(detail=True, methods=['post', 'delete'], url_path='shopping_cart')
     def shopping_cart(self, request, pk):
@@ -135,12 +129,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
         p.setFont('TNR', size=24)
         p.drawString(100, 750, "Список покупок")
         p.setFont('TNR', size=18)
-        b = 20 # number of bullet on page
+        b = 20  # number of bullet on page
         for i, item in enumerate(ingredients):
-            line = f'\u2022 {item.name}, {item.measurement_unit}: {item.amounts__amount__sum}'
-            pos = 720-(i%b)*20
+            line = (f'\u2022 {item.name}, {item.measurement_unit}: '
+                    f'{item.amounts__amount__sum}'
+                    )
+            pos = 720-(i % b)*20
             p.drawString(100, pos, line)
-            if i%b == b-1:
+            if i % b == b-1:
                 p.showPage()
                 p.setFont('TNR', size=24)
                 p.drawString(100, 750, "Список покупок (продолжение)")
@@ -150,7 +146,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
         p.save()
 
         buffer.seek(0)
-        return FileResponse(buffer, as_attachment=True, filename='shopping_cart.pdf')
+        return FileResponse(
+            buffer,
+            as_attachment=True,
+            filename='shopping_cart.pdf'
+        )
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):

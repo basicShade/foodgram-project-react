@@ -1,7 +1,6 @@
 from django.contrib import admin
-from django.contrib.auth import get_user_model
 
-from .models import Recipe, Ingredient, Tag, ShoppingCart, Favorite
+from .models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 
 
 class RecipeIngredientAdmin(admin.TabularInline):
@@ -16,13 +15,13 @@ class RecipeTagAdmin(admin.TabularInline):
 
 class ShoppingCartInline(admin.StackedInline):
     model = ShoppingCart
-    fk_name='user'
+    fk_name = 'user'
     extra = 0
 
 
 class FavoriteInline(admin.StackedInline):
     model = Favorite
-    fk_name='user'
+    fk_name = 'user'
     extra = 0
 
 
