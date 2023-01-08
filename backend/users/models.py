@@ -3,13 +3,14 @@ from django.db import models
 
 
 class User(AbstractUser):
-    email = models.EmailField(unique=True)
-    username = models.CharField(max_length=150, unique=True)
-    first_name = models.CharField(max_length=150)
-    last_name = models.CharField(max_length=150)
+    email = models.EmailField(max_length=64, unique=True)
+    username = models.CharField(max_length=64, unique=True)
+    first_name = models.CharField(max_length=64)
+    last_name = models.CharField(max_length=64)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
+    password = models.CharField(max_length=200, verbose_name='password')
 
     def save(self, *args, **kwargs):
         if self.is_superuser:

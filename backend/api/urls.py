@@ -29,7 +29,7 @@ router_v1.register(r'tags', TagViewSet, basename='tags')
 
 
 urlpatterns = [
-    path('v1/', include(router_v1.urls)),
+    path('', include(router_v1.urls)),
     path('', include('users.urls'))
 
 ]

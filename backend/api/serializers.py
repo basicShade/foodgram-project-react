@@ -112,14 +112,16 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         model = Recipe
         exclude = ('pub_date',)
 
-    # def validate_ingredients(self, value):
-    #     for item in value:
-    #         amount = item['amount']
-    #         if amount < 1 or not isinstance(amount, int):
-    #             raise serializers.ValidationError(
-    #                 (f'Проверьте, что количество в {item["id"]}'
-    #                  ' целое и не меньше 1')
-    #                  )
+    def validate(self, attrs):
+        counter = {}
+        for item in attrs['ingredients']:
+            cnt = counter.get(item['id'], 0)
+            counter[item['id']] = cnt + 1
+        for key, value in counter.items():
+            if value != 1:
+                raise serializers.ValidationError('Ингредиенты повторяются')
+
+        return attrs
 
     def create_ingredients(self, ingredients, recipe):
         for ingredient in ingredients:

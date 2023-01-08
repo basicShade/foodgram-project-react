@@ -38,7 +38,7 @@ class UserViewSet(viewsets.ModelViewSet):
                 code=status.HTTP_401_UNAUTHORIZED
             )
         return Response(
-            UserSerializer(request.user).data,
+            UserSerializer(request.user, context={'request': request}).data,
             status=status.HTTP_200_OK
         )
 

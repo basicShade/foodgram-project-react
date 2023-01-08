@@ -1,5 +1,7 @@
 import io
+import os
 
+from django.conf import settings
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from django.db.models import Sum
@@ -115,7 +117,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'], url_path='download_shopping_cart')
     def download_shopping_cart(self, request):
 
-        ingredients = Ingredient.objects.filter(recipes__is_in_shopping_cart=True)
+        ingredients = Ingredient.objects.filter(
+            recipes__is_in_shopping_cart__user=request.user
+        )
         ingredients = ingredients.annotate(Sum('amounts__amount'))
 
         buffer = io.BytesIO()
@@ -123,7 +127,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
         p = canvas.Canvas(buffer)
         pdfmetrics.registerFont(
             ttfonts.TTFont(
-                'TNR', 'times.ttf', 'UTF-8'
+                'TNR',
+                os.path.join(settings.BASE_DIR, 'api/fonts/Times.ttf'),
+                'UTF-8'
             )
         )
         p.setFont('TNR', size=24)
@@ -131,7 +137,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
         p.setFont('TNR', size=18)
         b = 20 # number of bullet on page
         for i, item in enumerate(ingredients):
-            print(item)
             line = f'\u2022 {item.name}, {item.measurement_unit}: {item.amounts__amount__sum}'
             pos = 720-(i%b)*20
             p.drawString(100, pos, line)
@@ -152,6 +157,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     """View рецептов"""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
+    pagination_class = None
     lookup_field = 'pk'
 
 
@@ -159,4 +165,5 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
     """View рецептов"""
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
+    pagination_class = None
     lookup_field = 'pk'
