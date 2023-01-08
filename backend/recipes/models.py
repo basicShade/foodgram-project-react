@@ -7,8 +7,8 @@ User = get_user_model()
 
 class Ingredient(models.Model):
     """Модель ингредиентов"""
-    name = models.CharField(max_length=100)
-    measurement_unit = models.CharField(max_length=100)
+    name = models.CharField(max_length=200)
+    measurement_unit = models.CharField(max_length=200)
 
     class Meta:
         ordering = ['name']
@@ -25,9 +25,9 @@ class Ingredient(models.Model):
 
 class Tag(models.Model):
     """Модель тэгов"""
-    name = models.CharField(max_length=100, unique=True)
+    name = models.CharField(max_length=200, unique=True)
     color = models.CharField(max_length=7, unique=True)
-    slug = models.SlugField(max_length=100, unique=True)
+    slug = models.SlugField(max_length=200, unique=True)
 
     class Meta:
         ordering = ['slug']
@@ -45,7 +45,7 @@ class Recipe(models.Model):
     )
     name = models.CharField(
         verbose_name='recipe title',
-        max_length=100,
+        max_length=200,
     )
 
     image = models.ImageField(
