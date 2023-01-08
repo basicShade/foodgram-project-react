@@ -34,6 +34,7 @@ class CustomUserAdmin(UserAdmin):
                     'is_admin'
                     )
     list_filter = ('is_admin', 'is_superuser', 'is_active')
+    search_fields = ('email', 'username')
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
         (_('Personal info'), {

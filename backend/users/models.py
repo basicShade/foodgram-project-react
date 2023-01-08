@@ -10,6 +10,7 @@ class User(AbstractUser):
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
+    password = models.CharField(max_length=200)
 
     def save(self, *args, **kwargs):
         if self.is_superuser:

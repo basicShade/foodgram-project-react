@@ -37,15 +37,15 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         qset = Recipe.objects.prefetch_related('tags', 'ingredients')
-        tag = self.request.query_params.get('tags')
+        tags = self.request.query_params.getlist('tags')
         is_favorited = self.request.query_params.get('is_favorited')
         is_in_shopping_cart = self.request.query_params.get(
                 'is_in_shopping_cart'
         )
         user = self.request.user
 
-        if tag:
-            qset = qset.filter(tags__slug__icontains=tag)
+        if len(tags):
+            qset = qset.filter(tags__slug__in=tags)
 
         if user.is_anonymous:
             return qset
