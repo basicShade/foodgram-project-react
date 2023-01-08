@@ -8,8 +8,8 @@ services:
     env_file:
       - ./.env
 
-  web:
-    build: ../backend/
+  backend:
+    image: basicshade/foodgram_backend:latest
     expose:
       - 8000
     restart: always
@@ -22,9 +22,7 @@ services:
       - ./.env
 
   frontend:
-    build:
-      context: ../frontend
-      dockerfile: Dockerfile
+    image: basicshade/foodgram_frontend:latest
     volumes:
       - ../frontend/:/app/result_build/
 

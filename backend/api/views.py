@@ -118,7 +118,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         buffer = io.BytesIO()
 
-        p = canvas.Canvas(buffer)
+        pdf_report = canvas.Canvas(buffer)
         pdfmetrics.registerFont(
             ttfonts.TTFont(
                 'TNR',
@@ -126,24 +126,24 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 'UTF-8'
             )
         )
-        p.setFont('TNR', size=24)
-        p.drawString(100, 750, "Список покупок")
-        p.setFont('TNR', size=18)
-        b = 20  # number of bullet on page
+        pdf_report.setFont('TNR', size=24)
+        pdf_report.drawString(100, 750, "Список покупок")
+        pdf_report.setFont('TNR', size=18)
+        number_of_bullets_on_page = 20
         for i, item in enumerate(ingredients):
             line = (f'\u2022 {item.name}, {item.measurement_unit}: '
                     f'{item.amounts__amount__sum}'
                     )
-            pos = 720-(i % b)*20
-            p.drawString(100, pos, line)
-            if i % b == b-1:
-                p.showPage()
-                p.setFont('TNR', size=24)
-                p.drawString(100, 750, "Список покупок (продолжение)")
-                p.setFont('TNR', size=18)
+            pos = 720-(i % number_of_bullets_on_page)*20
+            pdf_report.drawString(100, pos, line)
+            if i % number_of_bullets_on_page == number_of_bullets_on_page-1:
+                pdf_report.showPage()
+                pdf_report.setFont('TNR', size=24)
+                pdf_report.drawString(100, 750, "Список покупок (продолжение)")
+                pdf_report.setFont('TNR', size=18)
 
-        p.showPage()
-        p.save()
+        pdf_report.showPage()
+        pdf_report.save()
 
         buffer.seek(0)
         return FileResponse(

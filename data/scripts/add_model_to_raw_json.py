@@ -19,5 +19,3 @@ try:
             json.dump(result, w, ensure_ascii=False)
 except IndexError:
     print('Укажите исходный файл <file.json> и название модели <app.model>')
-
-

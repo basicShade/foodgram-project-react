@@ -73,26 +73,28 @@ class RecipeSerializer(serializers.ModelSerializer):
     is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)
     is_favorited = serializers.SerializerMethodField(read_only=True)
 
+    class Meta:
+        model = Recipe
+        exclude = ('pub_date',)
+
     def get_ingredients(self, obj):
         return ShowIngredientSerializer(
             RecipeIngredient.objects.filter(recipe=obj),
             many=True).data
 
-    class Meta:
-        model = Recipe
-        exclude = ('pub_date',)
-
     def get_is_in_shopping_cart(self, obj):
         user = self.context.get('request').user
-        if user.is_anonymous:
-            return False
-        return ShoppingCart.objects.filter(user=user, recipe=obj).exists()
+        return (
+            not user.is_anonymous
+            and ShoppingCart.objects.filter(user=user, recipe=obj).exists()
+        )
 
     def get_is_favorited(self, obj):
         user = self.context.get('request').user
-        if user.is_anonymous:
-            return False
-        return Favorite.objects.filter(user=user, recipe=obj).exists()
+        return (
+            not user.is_anonymous
+            and Favorite.objects.filter(user=user, recipe=obj).exists()
+        )
 
 
 class RecipeWriteSerializer(serializers.ModelSerializer):
