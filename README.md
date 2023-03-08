@@ -3,10 +3,10 @@
 ### Описание:
 Учебный проект по созданию REST API на Django REST Framework. Сервис предназначен для хранения и просмотра кулинарных рецептов, разделенных на группы с помощью тегов. Предусмотрен механизм фильтрации по избранным рецептам и механизм подписок на других пользователей. Фронтэнд написан на React. Админ панель настроена для удобства работы со всеми моделями базы данных. В пользовательскую модель включена дополнительная роль администратора. Аутентификация на основе DRF authtoken. Эндпоинты для создания пользователя и аутентификации частично обслуживаются djoser. В приложении реализована логика создания списка покупок по рецептам, добавленным в корзину. Список покупок формируется в pdf с помощью библиотеки reportlab и отправляется пользователю по запросу.
 
-* Главная страница: http://basicshade.ddns.net/
-* Админка: http://basicshade.ddns.net/admin/
-* API: http://basicshade.ddns.net/api/
-* Документация API: http://basicshade.ddns.net/api/docs/
+* Главная страница: ~~http://basicshade.ddns.net/~~
+* Админка: ~~http://basicshade.ddns.net/admin/~~
+* API: ~~http://basicshade.ddns.net/api/~~
+* Документация API: ~~http://basicshade.ddns.net/api/docs/~~
 
 ### Используемые технологии
 <img src="https://img.shields.io/badge/Python-FFD43B?style=for-the-badge&logo=python&logoColor=blue" /> <img src="https://img.shields.io/badge/Django-092E20?style=for-the-badge&logo=django&logoColor=green" /> <img src="https://img.shields.io/badge/django%20rest-ff1709?style=for-the-badge&logo=django&logoColor=white" /> <img src="https://img.shields.io/badge/Docker-2CA5E0?style=for-the-badge&logo=docker&logoColor=white" />
